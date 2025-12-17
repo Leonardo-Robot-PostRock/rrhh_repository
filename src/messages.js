@@ -14,6 +14,7 @@ export const DEFAULT_MESSAGES = {
     minValue: 'Please enter a value greater than or equal to {0}.',
     maxValue: 'Please enter a value less than or equal to {0}.',
     file: 'Please attach a PDF file.',
+    leadingZero: 'Please enter a salary that does not start with 0.',
     linkedin: 'Please enter a valid LinkedIn profile URL.',
     date: 'Please enter a valid date.',
     default: 'The value is invalid.'
@@ -29,6 +30,7 @@ export const DEFAULT_MESSAGES = {
     minValue: 'Por favor ingresa un valor mayor o igual a {0}.',
     maxValue: 'Por favor ingresa un valor menor o igual a {0}.',
     file: 'Por favor adjunta un archivo PDF.',
+    leadingZero: 'Por favor ingresa un salario que no comience con 0.',
     linkedin: 'Por favor ingresa una URL válida de LinkedIn.',
     date: 'Por favor ingresa una fecha válida.',
     default: 'El valor no es válido.'

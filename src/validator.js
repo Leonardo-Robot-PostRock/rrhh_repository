@@ -16,6 +16,7 @@
 import DEFAULT_MESSAGES from './messages.js';
 import { RE, parseRules, validateValue } from './rules.js';
 import { uid, addClass, removeClass, format } from './utils.js';
+import salaryRanges from '../config/salary-ranges.json' assert { type: 'json' };
 
 /**
  * FormValidator
@@ -163,12 +164,8 @@ class FormValidator {
 			if (name === 'salary' && form) {
 				const currencyEl = form.querySelector('[name="currency"]');
 				const currency = currencyEl ? (currencyEl.value || '').toUpperCase() : '';
-				// Defaults (can be adjusted here)
-				const defaults = {
-					USD: { min: 30000, max: 200000 },
-					EUR: { min: 25000, max: 180000 },
-					ARS: { min: 3000000, max: 15000000 }
-				};
+				// Defaults loaded from config/salary-ranges.json
+				const defaults = salaryRanges;
 
 				// Check for data attributes on the salary field to override per-currency ranges
 				let minVal, maxVal;
@@ -238,6 +235,16 @@ class FormValidator {
 			}
 
 			const value = field.value;
+
+			// Salary must not start with a leading zero (e.g. '012345').
+			if (name === 'salary' && value) {
+				const vtrim = String(value).trim();
+				if ((vtrim.length > 1 && vtrim.startsWith('0')) || /^0\d+/.test(vtrim)) {
+					if (opts.show) this._showError(field, 'leadingZero');
+					this._applyInvalid(field);
+					return false;
+				}
+			}
 			for (let i = 0; i < dataRules.length; i++) {
 				const rule = dataRules[i];
 				const result = validateValue(value, rule);

@@ -30,15 +30,44 @@ npm run build
 - `salary`: campo numérico con validación `numeric|minValue:30000|maxValue:200000`.
 - `salary`: campo numérico validado como `numeric`. Los rangos (mín/max) se aplican según la `currency` seleccionada.
 
+
 Cómo funcionan los rangos de `salary`:
-- Por defecto el validador aplica límites por moneda (ejemplo):
+- El validador aplica mínimo y máximo por moneda, configurables via `config/salary-ranges.json`.
+- Rangos por defecto (editables por el cliente):
 	- `USD`: min 30000, max 200000
 	- `EUR`: min 25000, max 180000
-	- `ARS`: min 3000000, max 15000000
-- No pongas `minValue`/`maxValue` fijos en el atributo `data-validate` del `input[name="salary"]` — el validador usará la moneda seleccionada para decidir los límites.
-- Si necesitas sobrescribir los límites, usa atributos `data-` en el propio `input`:
+	- `ARS`: min 1500000, max 15000000
+- No pongas `minValue`/`maxValue` fijos en el atributo `data-validate` del `input[name="salary"]` — el validador usará la moneda seleccionada.
+- Para sobrescribir, usa atributos `data-` en el `input`:
 	- `data-salary-min-usd="35000"` y `data-salary-max-usd="250000"` (ocurre como dataset `salaryMinUsd` / `salaryMaxUsd`)
 	- o genérico `data-salary-min="20000"` / `data-salary-max="1000000"`
+
+- Además, los valores de `salary` que comiencen con un cero a la izquierda (por ejemplo `012345`) son rechazados.
+
+## Configurar rangos de salario
+
+Los valores mínimo y máximo de salario por moneda se definen en `config/salary-ranges.json`. Edita este archivo para ajustar los rangos según tus necesidades.
+
+Ejemplo:
+
+```json
+{
+  "USD": {
+    "min": 30000,
+    "max": 200000
+  },
+  "EUR": {
+    "min": 25000,
+    "max": 180000
+  },
+  "ARS": {
+    "min": 1500000,
+    "max": 15000000
+  }
+}
+```
+
+Después de editar, reconstruye el bundle con `npm run build`.
 - `currency`: selector obligatorio (`USD`, `EUR`, `ARS`).
 - `schedule`: selector obligatorio con horarios predefinidos.
  
