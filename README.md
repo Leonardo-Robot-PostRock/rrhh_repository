@@ -27,50 +27,10 @@ npm run build
 
 ## Campos añadidos para RRHH
 
-- `salary`: campo numérico con validación `numeric|minValue:30000|maxValue:200000`.
-- `salary`: campo numérico validado como `numeric`. Los rangos (mín/max) se aplican según la `currency` seleccionada.
-
-
-Cómo funcionan los rangos de `salary`:
-- El validador aplica mínimo y máximo por moneda, configurables via `config/salary-ranges.json`.
-- Rangos por defecto (editables por el cliente):
-	- `USD`: min 30000, max 200000
-	- `EUR`: min 25000, max 180000
-	- `ARS`: min 1500000, max 15000000
-- No pongas `minValue`/`maxValue` fijos en el atributo `data-validate` del `input[name="salary"]` — el validador usará la moneda seleccionada.
-- Para sobrescribir, usa atributos `data-` en el `input`:
-	- `data-salary-min-usd="35000"` y `data-salary-max-usd="250000"` (ocurre como dataset `salaryMinUsd` / `salaryMaxUsd`)
-	- o genérico `data-salary-min="20000"` / `data-salary-max="1000000"`
-
-- Además, los valores de `salary` que comiencen con un cero a la izquierda (por ejemplo `012345`) son rechazados.
-
-## Configurar rangos de salario
-
-Los valores mínimo y máximo de salario por moneda se definen en `config/salary-ranges.json`. Edita este archivo para ajustar los rangos según tus necesidades.
-
-Ejemplo:
-
-```json
-{
-  "USD": {
-    "min": 30000,
-    "max": 200000
-  },
-  "EUR": {
-    "min": 25000,
-    "max": 180000
-  },
-  "ARS": {
-    "min": 1500000,
-    "max": 15000000
-  }
-}
-```
-
-Después de editar, reconstruye el bundle con `npm run build`.
+- `salary`: campo numérico validado como `numeric`. Además, los valores que comiencen con un cero a la izquierda (por ejemplo `012345`) son rechazados.
 - `currency`: selector obligatorio (`USD`, `EUR`, `ARS`).
 - `schedule`: selector obligatorio con horarios predefinidos.
- 
+
 ## Configurar el email destinatario
 
 El proyecto incluye un fichero JSON para configurar el email al que debería enviarse (o registrarse) la solicitud. Por defecto está en `config/email.json` con el valor de ejemplo del cliente.

@@ -16,7 +16,6 @@
 import DEFAULT_MESSAGES from './messages.js';
 import { RE, parseRules, validateValue } from './rules.js';
 import { uid, addClass, removeClass, format } from './utils.js';
-import salaryRanges from '../config/salary-ranges.json' assert { type: 'json' };
 
 /**
  * FormValidator
@@ -158,44 +157,6 @@ class FormValidator {
 			if (jsRuleKey && this.opts.rules && this.opts.rules[jsRuleKey]) {
 				const jsRules = parseRules(this.opts.rules[jsRuleKey]);
 				jsRules.forEach(r => dataRules.push(r));
-			}
-
-			// Special handling: salary ranges per currency. Allow overrides via data attributes
-			if (name === 'salary' && form) {
-				const currencyEl = form.querySelector('[name="currency"]');
-				const currency = currencyEl ? (currencyEl.value || '').toUpperCase() : '';
-				// Defaults loaded from config/salary-ranges.json
-				const defaults = salaryRanges;
-
-				// Check for data attributes on the salary field to override per-currency ranges
-				let minVal, maxVal;
-				if (currency) {
-					const dataMinKey = `salaryMin${currency}`; // corresponds to data-salary-min-USD -> dataset.salaryMinUsd
-					const dataMaxKey = `salaryMax${currency}`;
-					minVal = field.dataset[dataMinKey];
-					maxVal = field.dataset[dataMaxKey];
-				}
-				// fallback to generic data attributes
-				if (!minVal && field.dataset.salaryMin) minVal = field.dataset.salaryMin;
-				if (!maxVal && field.dataset.salaryMax) maxVal = field.dataset.salaryMax;
-
-				// fallback to defaults
-				if (!minVal && currency && defaults[currency]) minVal = String(defaults[currency].min);
-				if (!maxVal && currency && defaults[currency]) maxVal = String(defaults[currency].max);
-
-				// Ensure currency-derived limits override any existing generic minValue/maxValue
-				if (minVal) {
-					for (let i = dataRules.length - 1; i >= 0; i--) {
-						if (dataRules[i].name === 'minValue') dataRules.splice(i, 1);
-					}
-					dataRules.push({ name: 'minValue', arg: String(minVal) });
-				}
-				if (maxVal) {
-					for (let i = dataRules.length - 1; i >= 0; i--) {
-						if (dataRules[i].name === 'maxValue') dataRules.splice(i, 1);
-					}
-					dataRules.push({ name: 'maxValue', arg: String(maxVal) });
-				}
 			}
 
 			// If input type=email and no explicit rule, add email
