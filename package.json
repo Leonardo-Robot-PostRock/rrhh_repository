@@ -1,0 +1,16 @@
+{
+  "name": "form-validator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/validator.js --bundle --outfile=dist/bundle.js --minify --sourcemap && tailwindcss -i src/styles/tailwind.css -o dist/styles.css --minify --content 'examples/**/*.html' 'src/**/*.js'",
+    "build:js": "esbuild src/validator.js --bundle --outfile=dist/bundle.js --minify --sourcemap",
+    "build:css": "tailwindcss -i src/styles/tailwind.css -o dist/styles.css --minify --content 'examples/**/*.html' 'src/**/*.js'",
+    "build:all": "npm run build:js && node scripts/inline.js",
+    "build:watch": "esbuild src/validator.js --bundle --outfile=dist/bundle.js --sourcemap --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.18",
+    "tailwindcss": "^4.1.18"
+  }
+}
