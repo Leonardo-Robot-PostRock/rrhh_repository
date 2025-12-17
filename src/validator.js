@@ -22,14 +22,6 @@ import { uid, addClass, removeClass, format } from './utils.js';
  * A small, dependency-free form validation class.
  */
 class FormValidator {
-		/**
-		 * Create a FormValidator instance.
-		 * @param {String|Element|NodeList} selector - form selector, element or NodeList
-		 * @param {Object} options - configuration
-		 * @param {Boolean} options.realtime - validate while typing
-		 * @param {'es'|'en'} options.lang - language for messages
-		 * @param {Object} options.rules - JS rules mapping by field name or selector
-		 */
 	/**
 	 * Create a FormValidator instance.
 	 * @param {String|Element|NodeList} selector - form selector, a form element or a NodeList
@@ -61,7 +53,17 @@ class FormValidator {
 
 			const onSubmit = (e) => {
 				const ok = this.validateForm(form);
-				if (!ok) e.preventDefault();
+				if (ok) {
+					// Send via mailto using recipient from meta
+					const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
+					if (recipient) {
+						const formData = new FormData(form);
+						const body = Array.from(formData.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
+						window.location.href = `mailto:${recipient}?subject=Nueva solicitud&body=${encodeURIComponent(body)}`;
+					}
+				} else {
+					e.preventDefault();
+				}
 			};
 
 			const handlers = { submit: onSubmit, inputs: [] };

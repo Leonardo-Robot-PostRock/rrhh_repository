@@ -25,6 +25,8 @@ npm run build
 
 3. Abrir `examples/index.html` en un navegador (sirve con `file://` ya que usa CDN para Tailwind).
 
+Cuando el formulario se envía y es válido, abrirá el cliente de email del usuario con un mensaje pre-llenado al destinatario configurado.
+
 ## Campos añadidos para RRHH
 
 - `salary`: campo numérico validado como `numeric`. Además, los valores que comiencen con un cero a la izquierda (por ejemplo `012345`) son rechazados.

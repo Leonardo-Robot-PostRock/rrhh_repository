@@ -25,6 +25,8 @@ npm run build
 
 3. Open `examples/index.html` in a browser (works via `file://` since Tailwind is loaded from CDN).
 
+When the form is submitted and valid, it will open the user's email client with a pre-filled message to the configured recipient.
+
 ## HR-specific fields
 
 - `salary`: numeric field validated as `numeric`. Additionally, values are rejected if they begin with a leading zero (e.g. `012345`).
