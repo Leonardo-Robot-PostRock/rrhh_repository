@@ -30,6 +30,26 @@ npm run build
 - `salary`: campo numérico con validación `numeric|minValue:30000|maxValue:200000`.
 - `currency`: selector obligatorio (`USD`, `EUR`, `ARS`).
 - `schedule`: selector obligatorio con horarios predefinidos.
+ 
+## Configurar el email destinatario
+
+El proyecto incluye un fichero JSON para configurar el email al que debería enviarse (o registrarse) la solicitud. Por defecto está en `config/email.json` con el valor de ejemplo del cliente.
+
+Ejemplo (`config/email.json`):
+
+```json
+{
+	"recipient": "anshegol@gmail.com"
+}
+```
+
+Cuando generes el HTML bundle (`dist/bundle.html`), el script `scripts/inline.js` inyecta automáticamente una meta tag en el `head` con el email configurado:
+
+```html
+<meta name="recipient-email" content="anshegol@gmail.com">
+```
+
+Esto facilita al cliente cambiar únicamente el JSON para apuntar a otro email. La lógica de envío (por ejemplo un endpoint servidor) debe leer este valor si se desea usarlo en producción.
 
 ## Desarrollo y documentación
 

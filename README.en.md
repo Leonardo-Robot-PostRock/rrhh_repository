@@ -35,3 +35,23 @@ npm run build
 
 - Modular source under `src/` with JSDoc comments in main functions/classes.
 - Run `npm run build` to regenerate `dist/bundle.js`.
+
+## Configure recipient email
+
+The project includes a small JSON file to configure the recipient email. By default it's `config/email.json` and contains the client's example address.
+
+Example (`config/email.json`):
+
+```json
+{
+	"recipient": "anshegol@gmail.com"
+}
+```
+
+When building the single-file HTML (`dist/bundle.html`) the `scripts/inline.js` script injects a meta tag into the document head with the configured email:
+
+```html
+<meta name="recipient-email" content="anshegol@gmail.com">
+```
+
+Change the JSON value to point the bundle to another recipient address. Actual sending must be implemented server-side and can read this meta or the JSON directly.
