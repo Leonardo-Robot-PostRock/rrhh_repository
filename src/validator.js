@@ -17,6 +17,8 @@ import DEFAULT_MESSAGES from './messages.js';
 import { RE, parseRules, validateValue } from './rules.js';
 import { uid, addClass, removeClass, format } from './utils.js';
 import emailjs from '@emailjs/browser';
+import { uploadToCloudinary } from './services/cloudinary.service.js';
+
 
 /**
  * FormValidator
@@ -56,66 +58,53 @@ class FormValidator {
         if (!form || form.tagName !== 'FORM') return;
         if (this.forms.indexOf(form) !== -1) return; // already attached
 
-        const onSubmit = (e) => {
-            e.preventDefault(); // Always prevent default form submission
+        const onSubmit = async (e) => {
+            e.preventDefault(); // Siempre prevenir el envío por defecto
             const ok = this.validateForm(form);
             if (!ok) return;
 
-            // Helper: find submit button to disable during send
             const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
 
-            // --- Prepara campos adicionales que queremos enviar al template ---
-            // 1) cv_name (nombre del archivo subido)
+            // Obtener el archivo del CV
             const cvInput = form.querySelector('input[name="cv"]');
-            let cvNameInput = form.querySelector('input[name="cv_name"]');
-            if (!cvNameInput) {
-                cvNameInput = document.createElement('input');
-                cvNameInput.type = 'hidden';
-                cvNameInput.name = 'cv_name';
-                form.appendChild(cvNameInput);
+            let cvUrl = '';
+
+            if (cvInput && cvInput.files.length > 0) {
+                const file = cvInput.files[0];
+                try {
+                    // Subir el CV a Cloudinary y obtener la URL
+                    cvUrl = await uploadToCloudinary(file);
+                } catch (error) {
+                    console.error('Error al subir el CV a Cloudinary:', error);
+                    alert('No se pudo subir el CV. Intenta de nuevo.');
+                    if (submitBtn) submitBtn.disabled = false;
+                    return;
+                }
             }
-            cvNameInput.value = (cvInput && cvInput.files && cvInput.files[0]) ? cvInput.files[0].name : '';
 
-            // 2) date_readable (si tu campo date está en YYYY-MM-DD, lo convertimos a DD/MM/YYYY para el mail)
-            const dateField = form.querySelector('input[name="date"]');
-            let dateReadableInput = form.querySelector('input[name="date_readable"]');
-            if (!dateReadableInput) {
-                dateReadableInput = document.createElement('input');
-                dateReadableInput.type = 'hidden';
-                dateReadableInput.name = 'date_readable';
-                form.appendChild(dateReadableInput);
+            // Agregar la URL del CV al formulario como un campo oculto
+            let cvUrlInput = form.querySelector('input[name="cv_url"]');
+            if (!cvUrlInput) {
+                cvUrlInput = document.createElement('input');
+                cvUrlInput.type = 'hidden';
+                cvUrlInput.name = 'cv_url';
+                form.appendChild(cvUrlInput);
             }
-            const rawDate = dateField ? dateField.value.trim() : '';
-            // simple parse YYYY-MM-DD -> DD/MM/YYYY (si no coincide, enviamos el valor tal cual)
-            const m = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            dateReadableInput.value = m ? `${m[3]}/${m[2]}/${m[1]}` : rawDate;
+            cvUrlInput.value = cvUrl;
 
-            // 3) salary_display (combinar salario + moneda para mostrar limpio)
-            const salaryField = form.querySelector('input[name="salary"]');
-            const currencyField = form.querySelector('select[name="currency"], input[name="currency"]');
-            let salaryDisplayInput = form.querySelector('input[name="salary_display"]');
-            if (!salaryDisplayInput) {
-                salaryDisplayInput = document.createElement('input');
-                salaryDisplayInput.type = 'hidden';
-                salaryDisplayInput.name = 'salary_display';
-                form.appendChild(salaryDisplayInput);
-            }
-            const salaryVal = salaryField ? salaryField.value.trim() : '';
-            const curr = currencyField ? currencyField.value.trim() : '';
-            salaryDisplayInput.value = salaryVal ? `${salaryVal}${curr ? ' ' + curr : ''}` : '';
+            // Deshabilitar el botón de enviar mientras se procesa
+            if (submitBtn) submitBtn.disabled = true;
 
-            // -----------------------------------------------------------------
-
+            // Enviar el formulario a EmailJS
             let emailjsOpts = this.opts.emailjs;
             if (!emailjsOpts && window.emailjsConfig) {
                 emailjsOpts = window.emailjsConfig;
             }
+
             if (emailjsOpts) {
-                // Send via EmailJS
                 const { serviceId, templateId, publicKey } = emailjsOpts;
                 const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
                 if (recipient) {
-                    // Add recipient to form as hidden input if not present
                     let toEmailInput = form.querySelector('input[name="to_email"]');
                     if (!toEmailInput) {
                         toEmailInput = document.createElement('input');
@@ -126,21 +115,17 @@ class FormValidator {
                     toEmailInput.value = recipient;
                 }
 
-                // Disable submit while sending
-                if (submitBtn) submitBtn.disabled = true;
-
-                // sendForm incluirá automáticamente los input[type=file] (si EmailJS lo soporta en tu plan)
                 emailjs.sendForm(serviceId, templateId, form, publicKey).then(() => {
                     if (submitBtn) submitBtn.disabled = false;
                     alert('Email enviado correctamente!');
-                    // opcional: form.reset(); // si quieres limpiar el form tras enviar
+                    form.reset();
                 }).catch((error) => {
                     if (submitBtn) submitBtn.disabled = false;
-                    console.error('Email send failed:', error);
-                    alert('Error al enviar el email. Reintenta o contacta con soporte.');
+                    console.error('Error al enviar el email:', error);
+                    alert('Error al enviar el email. Intenta de nuevo.');
                 });
             } else {
-                // Fallback to mailto
+                // Fallback a mailto si no se configura EmailJS
                 const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
                 if (recipient) {
                     const formData = new FormData(form);
