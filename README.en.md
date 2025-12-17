@@ -30,6 +30,17 @@ npm run build
 - `salary`: numeric field validated with `numeric|minValue:30000|maxValue:200000`.
 - `currency`: required select (`USD`, `EUR`, `ARS`).
 - `schedule`: required select with predefined time ranges.
+ - `salary`: numeric field validated as `numeric`. Min/max are applied according to the selected `currency`.
+
+Salary ranges behaviour:
+- By default the validator applies per-currency limits (example defaults):
+	- `USD`: min 30000, max 200000
+	- `EUR`: min 25000, max 180000
+	- `ARS`: min 3000000, max 15000000
+- Do not set fixed `minValue`/`maxValue` in the `data-validate` attribute on the `input[name="salary"]` — the validator will use the selected currency.
+- To override, add `data-` attributes on the `input`:
+	- `data-salary-min-usd="35000"` and `data-salary-max-usd="250000"` (available as dataset `salaryMinUsd` / `salaryMaxUsd`)
+	- or generic `data-salary-min="20000"` / `data-salary-max="1000000"`
 
 ## Development & docs
 

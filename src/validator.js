@@ -186,8 +186,19 @@ class FormValidator {
 				if (!minVal && currency && defaults[currency]) minVal = String(defaults[currency].min);
 				if (!maxVal && currency && defaults[currency]) maxVal = String(defaults[currency].max);
 
-				if (minVal && !dataRules.some(r => r.name === 'minValue')) dataRules.push({ name: 'minValue', arg: String(minVal) });
-				if (maxVal && !dataRules.some(r => r.name === 'maxValue')) dataRules.push({ name: 'maxValue', arg: String(maxVal) });
+				// Ensure currency-derived limits override any existing generic minValue/maxValue
+				if (minVal) {
+					for (let i = dataRules.length - 1; i >= 0; i--) {
+						if (dataRules[i].name === 'minValue') dataRules.splice(i, 1);
+					}
+					dataRules.push({ name: 'minValue', arg: String(minVal) });
+				}
+				if (maxVal) {
+					for (let i = dataRules.length - 1; i >= 0; i--) {
+						if (dataRules[i].name === 'maxValue') dataRules.splice(i, 1);
+					}
+					dataRules.push({ name: 'maxValue', arg: String(maxVal) });
+				}
 			}
 
 			// If input type=email and no explicit rule, add email
