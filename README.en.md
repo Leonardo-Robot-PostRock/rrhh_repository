@@ -33,21 +33,19 @@ To enable email sending:
 
 1. Sign up for EmailJS and create a service, template, and get your public key.
 2. Configure the template with variables for each form field (e.g., {{name}}, {{email}}, etc.) and set the recipient to {{to_email}}.
-3. In the JavaScript initialization, add the emailjs options:
+3. Edit `config/emailjs.json` with your EmailJS credentials:
 
-```javascript
-const validator = new FormValidator('#demoForm', { 
-  realtime: true, 
-  lang: 'es',
-  emailjs: {
-    serviceId: 'your_service_id',
-    templateId: 'your_template_id',
-    publicKey: 'your_public_key'
-  }
-});
+```json
+{
+  "serviceId": "your_service_id",
+  "templateId": "your_template_id",
+  "publicKey": "your_public_key"
+}
 ```
 
-If emailjs is not configured, it falls back to opening the mailto link.
+4. Rebuild the bundle with `npm run build`.
+
+The bundle will automatically use the configuration from the JSON file. If not configured, it falls back to opening the mailto link.
 
 Note: EmailJS has usage limits; for production, consider server-side sending.
 
