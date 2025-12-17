@@ -25,7 +25,31 @@ npm run build
 
 3. Abrir `examples/index.html` en un navegador (sirve con `file://` ya que usa CDN para Tailwind).
 
-Cuando el formulario se envía y es válido, abrirá el cliente de email del usuario con un mensaje pre-llenado al destinatario configurado.
+## Envío de Email
+
+El bundle soporta enviar emails via EmailJS (https://www.emailjs.com/), que permite enviar emails con adjuntos directamente desde el cliente.
+
+Para habilitar el envío de email:
+
+1. Regístrate en EmailJS y crea un servicio, template, y obtén tu public key.
+2. Configura el template con variables para cada campo del formulario (ej. {{name}}, {{email}}, etc.) y establece el destinatario a {{to_email}}.
+3. En la inicialización de JavaScript, agrega las opciones de emailjs:
+
+```javascript
+const validator = new FormValidator('#demoForm', { 
+  realtime: true, 
+  lang: 'es',
+  emailjs: {
+    serviceId: 'tu_service_id',
+    templateId: 'tu_template_id',
+    publicKey: 'tu_public_key'
+  }
+});
+```
+
+Si emailjs no está configurado, recurre a abrir el enlace mailto.
+
+Nota: EmailJS tiene límites de uso; para producción, considera envío server-side.
 
 ## Campos añadidos para RRHH
 

@@ -12,5 +12,8 @@
   "devDependencies": {
     "esbuild": "^0.18.18",
     "tailwindcss": "^4.1.18"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1"
   }
 }

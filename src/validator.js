@@ -16,6 +16,7 @@
 import DEFAULT_MESSAGES from './messages.js';
 import { RE, parseRules, validateValue } from './rules.js';
 import { uid, addClass, removeClass, format } from './utils.js';
+import emailjs from '@emailjs/browser';
 
 /**
  * FormValidator
@@ -29,6 +30,10 @@ class FormValidator {
 	 * @param {Boolean} [options.realtime=false] - validate while typing
 	 * @param {'es'|'en'} [options.lang='en'] - language for messages
 	 * @param {Object} [options.rules={}] - JS rules mapping by field name or selector
+	 * @param {Object} [options.emailjs] - EmailJS configuration for sending emails
+	 * @param {string} options.emailjs.serviceId - EmailJS service ID
+	 * @param {string} options.emailjs.templateId - EmailJS template ID
+	 * @param {string} options.emailjs.publicKey - EmailJS public key
 	 */
 	constructor(selector, options = {}) {
 		this.opts = Object.assign({ realtime: false, lang: 'en', rules: {} }, options);
@@ -52,17 +57,45 @@ class FormValidator {
 			if (this.forms.indexOf(form) !== -1) return; // already attached
 
 			const onSubmit = (e) => {
+				e.preventDefault(); // Always prevent default form submission
 				const ok = this.validateForm(form);
 				if (ok) {
-					// Send via mailto using recipient from meta
-					const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
-					if (recipient) {
-						const formData = new FormData(form);
-						const body = Array.from(formData.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
-						window.location.href = `mailto:${recipient}?subject=Nueva solicitud&body=${encodeURIComponent(body)}`;
+					if (this.opts.emailjs) {
+						// Send via EmailJS
+						const { serviceId, templateId, publicKey } = this.opts.emailjs;
+						const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
+						if (recipient) {
+							// Add recipient to form as hidden input if not present
+							let toEmailInput = form.querySelector('input[name="to_email"]');
+							if (!toEmailInput) {
+								toEmailInput = document.createElement('input');
+								toEmailInput.type = 'hidden';
+								toEmailInput.name = 'to_email';
+								form.appendChild(toEmailInput);
+							}
+							toEmailInput.value = recipient;
+						}
+						emailjs.sendForm(serviceId, templateId, form, publicKey).then(() => {
+							alert('Email sent successfully!');
+						}).catch((error) => {
+							console.error('Email send failed:', error);
+							alert('Failed to send email.');
+						});
+					} else {
+						// Fallback to mailto
+						const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
+						if (recipient) {
+							const formData = new FormData(form);
+							const body = Array.from(formData.entries()).map(([k, v]) => {
+								if (v instanceof File) {
+									return `${k}: ${v.name}`;
+								} else {
+									return `${k}: ${v}`;
+								}
+							}).join('\n');
+							window.location.href = `mailto:${recipient}?subject=Nueva solicitud&body=${encodeURIComponent(body)}`;
+						}
 					}
-				} else {
-					e.preventDefault();
 				}
 			};
 
