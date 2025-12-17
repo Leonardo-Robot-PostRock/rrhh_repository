@@ -159,6 +159,37 @@ class FormValidator {
 				jsRules.forEach(r => dataRules.push(r));
 			}
 
+			// Special handling: salary ranges per currency. Allow overrides via data attributes
+			if (name === 'salary' && form) {
+				const currencyEl = form.querySelector('[name="currency"]');
+				const currency = currencyEl ? (currencyEl.value || '').toUpperCase() : '';
+				// Defaults (can be adjusted here)
+				const defaults = {
+					USD: { min: 30000, max: 200000 },
+					EUR: { min: 25000, max: 180000 },
+					ARS: { min: 3000000, max: 15000000 }
+				};
+
+				// Check for data attributes on the salary field to override per-currency ranges
+				let minVal, maxVal;
+				if (currency) {
+					const dataMinKey = `salaryMin${currency}`; // corresponds to data-salary-min-USD -> dataset.salaryMinUsd
+					const dataMaxKey = `salaryMax${currency}`;
+					minVal = field.dataset[dataMinKey];
+					maxVal = field.dataset[dataMaxKey];
+				}
+				// fallback to generic data attributes
+				if (!minVal && field.dataset.salaryMin) minVal = field.dataset.salaryMin;
+				if (!maxVal && field.dataset.salaryMax) maxVal = field.dataset.salaryMax;
+
+				// fallback to defaults
+				if (!minVal && currency && defaults[currency]) minVal = String(defaults[currency].min);
+				if (!maxVal && currency && defaults[currency]) maxVal = String(defaults[currency].max);
+
+				if (minVal && !dataRules.some(r => r.name === 'minValue')) dataRules.push({ name: 'minValue', arg: String(minVal) });
+				if (maxVal && !dataRules.some(r => r.name === 'maxValue')) dataRules.push({ name: 'maxValue', arg: String(maxVal) });
+			}
+
 			// If input type=email and no explicit rule, add email
 			if (field.type === 'email' && !dataRules.some(r => r.name === 'email')) dataRules.push({ name: 'email' });
 
