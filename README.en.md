@@ -1,81 +1,117 @@
 # Form Validator — Demo (EN)
 
-This repository contains a small vanilla JS form validator intended as a demo for an HR client (Workana).
+This repository contains a small **vanilla JavaScript form validation library**, created as a demo project for an HR-related use case (Workana).
+
+The goal is to provide a **reusable, dependency-free** solution focused exclusively on **client-side form validation**, following good UX and accessibility practices.
+
+---
 
 ## Features
 
-- Validation via `data-validate` attributes.
-- Rules: `required`, `email`, `phone`, `min`, `max`, `pattern`, `date`, `numeric`, `minValue`, `maxValue`.
-- Localizable messages (`es`, `en`).
-- Tailwind-styled demo for a corporate look.
+- Validation via `data-validate` attributes and/or JS configuration.
+- Supported rules:
+  - `required`
+  - `email`
+  - `phone`
+  - `min`
+  - `max`
+  - `pattern` (regex)
+  - `date`
+  - `numeric`
+  - `minValue`
+  - `maxValue`
+- Real-time validation (`input` / `blur`) — optional.
+- Accessible inline error messages (`aria-describedby`, `role="alert"`).
+- Visual validation states via CSS classes.
+- Supports multiple forms with a single validator instance.
+- Localized messages (`en`, `es`).
+- No external dependencies.
+
+---
 
 ## Usage
 
-1. Install dev deps (esbuild):
+### Basic example
 
-```bash
+```js
+import FormValidator from './validator.js';
+
+const validator = new FormValidator('#myForm', {
+  realtime: true,
+  lang: 'en'
+});
+Validation rules can be defined using:
+
+required, minlength, maxlength, pattern HTML attributes
+
+data-validate attributes
+
+JavaScript configuration via the rules option
+
+Custom submit handling
+The validator does not send data and does not depend on any backend or third-party service.
+
+When a form passes validation, a custom event is dispatched:
+
+js
+Copiar código
+form.addEventListener('fv:submit', (e) => {
+  e.preventDefault(); // optional
+  // Handle submission logic here (fetch, backend, etc.)
+});
+If the event is not prevented, the form will submit normally.
+
+This design keeps validation decoupled from transport or infrastructure concerns.
+
+Demo
+Install dev dependencies (esbuild):
+
+bash
+Copiar código
 npm install
-```
+Build the bundle:
 
-2. Build the bundle:
-
-```bash
+bash
+Copiar código
 npm run build
-```
+Open examples/index.html in a browser
+(works via file:// — Tailwind is loaded from CDN).
 
-3. Open `examples/index.html` in a browser (works via `file://` since Tailwind is loaded from CDN).
+HR-oriented example fields
+The demo form includes common HR-related inputs:
 
-## Email Submission
+salary: numeric field
 
-The bundle supports sending emails via EmailJS (https://www.emailjs.com/), which allows sending emails with attachments directly from the client.
+Rejects values with leading zeros (e.g. 012345)
 
-To enable email sending:
+currency: required select (USD, EUR, ARS)
 
-1. Sign up for EmailJS and create a service, template, and get your public key.
-2. Configure the template with variables for each form field (e.g., {{name}}, {{email}}, etc.) and set the recipient to {{to_email}}.
-3. Edit `config/emailjs.json` with your EmailJS credentials:
+schedule: required select with predefined time ranges
 
-```json
-{
-  "serviceId": "your_service_id",
-  "templateId": "your_template_id",
-  "publicKey": "your_public_key"
-}
-```
+email, phone, date, etc.
 
-4. Rebuild the bundle with `npm run build`.
+These are examples only; the validator itself is form-agnostic.
 
-The bundle will automatically use the configuration from the JSON file. If not configured, it falls back to opening the mailto link.
+Project structure
+pgsql
+Copiar código
+src/
+ ├── validator.js
+ ├── rules.js
+ ├── messages.js
+ ├── utils.js
+examples/
+ ├── index.html
+ ├── styles.css
+dist/
+ └── bundle.js
+Notes
+This project focuses only on validation.
 
-Note: EmailJS has usage limits; for production, consider server-side sending.
+Form submission, email sending, file uploads, or backend integration
+are intentionally out of scope and must be implemented by the consuming application.
 
-## HR-specific fields
+Designed for modern browsers.
 
-- `salary`: numeric field validated as `numeric`. Additionally, values are rejected if they begin with a leading zero (e.g. `012345`).
-- `currency`: required select (`USD`, `EUR`, `ARS`).
-- `schedule`: required select with predefined time ranges.
-
-## Development & docs
-
-- Modular source under `src/` with JSDoc comments in main functions/classes.
-- Run `npm run build` to regenerate `dist/bundle.js`.
-
-## Configure recipient email
-
-The project includes a small JSON file to configure the recipient email. By default it's `config/email.json` and contains the client's example address.
-
-Example (`config/email.json`):
-
-```json
-{
-	"recipient": "anshegol@gmail.com"
-}
-```
-
-When building the single-file HTML (`dist/bundle.html`) the `scripts/inline.js` script injects a meta tag into the document head with the configured email:
-
-```html
-<meta name="recipient-email" content="anshegol@gmail.com">
-```
-
-Change the JSON value to point the bundle to another recipient address. Actual sending must be implemented server-side and can read this meta or the JSON directly.
+License
+MIT

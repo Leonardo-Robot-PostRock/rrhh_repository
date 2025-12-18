@@ -14,10 +14,8 @@
  */
 
 import DEFAULT_MESSAGES from './messages.js';
-import { RE, parseRules, validateValue } from './rules.js';
+import { parseRules, validateValue } from './rules.js';
 import { uid, addClass, removeClass, format } from './utils.js';
-import emailjs from '@emailjs/browser';
-import { uploadToCloudinary } from './services/cloudinary.service.js';
 
 
 /**
@@ -32,10 +30,6 @@ class FormValidator {
      * @param {Boolean} [options.realtime=false] - validate while typing
      * @param {'es'|'en'} [options.lang='en'] - language for messages
      * @param {Object} [options.rules={}] - JS rules mapping by field name or selector
-     * @param {Object} [options.emailjs] - EmailJS configuration for sending emails
-     * @param {string} options.emailjs.serviceId - EmailJS service ID
-     * @param {string} options.emailjs.templateId - EmailJS template ID
-     * @param {string} options.emailjs.publicKey - EmailJS public key
      */
     constructor(selector, options = {}) {
         this.opts = Object.assign({ realtime: false, lang: 'en', rules: {} }, options);
@@ -58,88 +52,25 @@ class FormValidator {
         if (!form || form.tagName !== 'FORM') return;
         if (this.forms.indexOf(form) !== -1) return; // already attached
 
-        const onSubmit = async (e) => {
-            e.preventDefault(); // Siempre prevenir el envío por defecto
-            const ok = this.validateForm(form);
-            if (!ok) return;
+        const onSubmit = (e) => {
+            e.preventDefault();
 
-            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            const isValid = this.validateForm(form);
+            if (!isValid) return;
 
-            // Obtener el archivo del CV
-            const cvInput = form.querySelector('input[name="cv"]');
-            let cvUrl = '';
+            // Evento custom para que el usuario decida qué hacer
+            const event = new CustomEvent('fv:submit', {
+                detail: { form }
+            });
 
-            if (cvInput && cvInput.files.length > 0) {
-                const file = cvInput.files[0];
-                try {
-                    // Subir el CV a Cloudinary y obtener la URL
-                    cvUrl = await uploadToCloudinary(file);
-                } catch (error) {
-                    console.error('Error al subir el CV a Cloudinary:', error);
-                    alert('No se pudo subir el CV. Intenta de nuevo.');
-                    if (submitBtn) submitBtn.disabled = false;
-                    return;
-                }
-            }
+            form.dispatchEvent(event);
 
-            // Agregar la URL del CV al formulario como un campo oculto
-            let cvUrlInput = form.querySelector('input[name="cv_url"]');
-            if (!cvUrlInput) {
-                cvUrlInput = document.createElement('input');
-                cvUrlInput.type = 'hidden';
-                cvUrlInput.name = 'cv_url';
-                form.appendChild(cvUrlInput);
-            }
-            cvUrlInput.value = cvUrl;
-
-            // Deshabilitar el botón de enviar mientras se procesa
-            if (submitBtn) submitBtn.disabled = true;
-
-            // Enviar el formulario a EmailJS
-            let emailjsOpts = this.opts.emailjs;
-            if (!emailjsOpts && window.emailjsConfig) {
-                emailjsOpts = window.emailjsConfig;
-            }
-
-            if (emailjsOpts) {
-                const { serviceId, templateId, publicKey } = emailjsOpts;
-                const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
-                if (recipient) {
-                    let toEmailInput = form.querySelector('input[name="to_email"]');
-                    if (!toEmailInput) {
-                        toEmailInput = document.createElement('input');
-                        toEmailInput.type = 'hidden';
-                        toEmailInput.name = 'to_email';
-                        form.appendChild(toEmailInput);
-                    }
-                    toEmailInput.value = recipient;
-                }
-
-                emailjs.sendForm(serviceId, templateId, form, publicKey).then(() => {
-                    if (submitBtn) submitBtn.disabled = false;
-                    alert('Email enviado correctamente!');
-                    form.reset();
-                }).catch((error) => {
-                    if (submitBtn) submitBtn.disabled = false;
-                    console.error('Error al enviar el email:', error);
-                    alert('Error al enviar el email. Intenta de nuevo.');
-                });
-            } else {
-                // Fallback a mailto si no se configura EmailJS
-                const recipient = document.querySelector('meta[name="recipient-email"]')?.content || '';
-                if (recipient) {
-                    const formData = new FormData(form);
-                    const body = Array.from(formData.entries()).map(([k, v]) => {
-                        if (v instanceof File) {
-                            return `${k}: ${v.name}`;
-                        } else {
-                            return `${k}: ${v}`;
-                        }
-                    }).join('\n');
-                    window.location.href = `mailto:${recipient}?subject=Nueva solicitud&body=${encodeURIComponent(body)}`;
-                }
+            // Si el usuario quiere permitir submit real:
+            if (!event.defaultPrevented) {
+                form.submit();
             }
         };
+
 
         const handlers = { submit: onSubmit, inputs: [] };
         form.addEventListener('submit', onSubmit);
