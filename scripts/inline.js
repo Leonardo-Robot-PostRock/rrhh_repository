@@ -36,20 +36,6 @@ try {
   // ignore config read errors
 }
 
-// Inject emailjs config if present
-const emailjsConfigFile = path.join(root, 'config', 'emailjs.json');
-try {
-  if (fs.existsSync(emailjsConfigFile)) {
-    const cfg = JSON.parse(fs.readFileSync(emailjsConfigFile, 'utf8'));
-    if (cfg && cfg.serviceId && cfg.templateId && cfg.publicKey) {
-      const script = `  <script>\n    window.emailjsConfig = ${JSON.stringify(cfg)};\n  </script>\n`;
-      html = html.replace(/<\/head>/i, `${script}</head>`);
-    }
-  }
-} catch (e) {
-  // ignore config read errors
-}
-
 // Inline CSS: replace link to ../dist/styles.css or styles.css with inline <style>
 html = html.replace(/<link[^>]*href="[^"]*styles\.css"[^>]*>\s*/i, () => {
   if (css) return `<style>\n${css}\n</style>`;

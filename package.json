@@ -12,7 +12,5 @@
     "esbuild": "^0.27.2",
     "tailwindcss": "^4.1.18"
   },
-  "dependencies": {
-    "@emailjs/browser": "^4.4.1"
-  }
+  "dependencies": {}
 }
